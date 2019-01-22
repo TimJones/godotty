@@ -48,3 +48,12 @@ bin: dev-container
 		--user "$(UID):$(GID)" \
 		$(PROJECT) \
 		go build -a -ldflags '-extldflags "-static"' -o bin/$(PROJECT) cmd/$(PROJECT)/*.go
+
+.PHONY: fmt
+fmt: dev-container
+	$(DOCKER_COMPOSE) --project-name $(PROJECT) run \
+		--name $(PROJECT)-fmt \
+		--rm \
+		--user "$(UID):$(GID)" \
+		$(PROJECT) \
+		gofmt -s -l -w cmd/ pkg/
