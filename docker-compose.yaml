@@ -1,0 +1,11 @@
+version: '3.4'
+services:
+  godotty:
+    build:
+      context: .
+      target: development
+    environment:
+      GOCACHE: /go/src/github.com/timjones/godotty/.cache
+      CGO_ENABLED: "0"
+    volumes:
+    - .:/go/src/github.com/timjones/godotty
