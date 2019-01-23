@@ -12,3 +12,12 @@ jobs:
     steps:
       - checkout
       - run: go build -a -ldflags '-extldflags "-static"' -o bin/godotty cmd/godotty/*.go
+  check_formatting:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          CGO_ENABLED: "0"
+    working_directory: /go/src/github.com/TimJones/godotty
+    steps:
+      - checkout
+      - run: gofmt -d -e -l -s cmd/
