@@ -21,3 +21,9 @@ jobs:
     steps:
       - checkout
       - run: gofmt -d -e -l -s cmd/
+workflows:
+  version: 2
+  check:
+    jobs:
+      - build
+      - check_formatting
