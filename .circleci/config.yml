@@ -1,0 +1,32 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          CGO_ENABLED: "0"
+    working_directory: /go/src/github.com/TimJones/godotty
+    steps:
+      - checkout
+      - run: go build -a -ldflags '-extldflags "-static"' -o bin/godotty cmd/godotty/*.go
+  check_formatting:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          CGO_ENABLED: "0"
+    working_directory: /go/src/github.com/TimJones/godotty
+    steps:
+      - checkout
+      - run: |
+          filecount=$(gofmt -s -l cmd/ | wc -l)
+          gofmt -s -l -e -d cmd/
+          exit ${filecount}
+workflows:
+  version: 2
+  check:
+    jobs:
+      - build
+      - check_formatting
