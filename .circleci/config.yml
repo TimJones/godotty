@@ -20,7 +20,10 @@ jobs:
     working_directory: /go/src/github.com/TimJones/godotty
     steps:
       - checkout
-      - run: gofmt -d -e -l -s cmd/
+      - run: |
+          filecount=$(gofmt -s -l cmd/ | wc -l)
+          gofmt -s -l -e -d cmd/
+          exit ${filecount}
 workflows:
   version: 2
   check:
