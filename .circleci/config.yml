@@ -7,23 +7,22 @@ jobs:
     docker:
       - image: circleci/golang:1.11
         environment:
+          NO_DOCKER: 1
           CGO_ENABLED: "0"
     working_directory: /go/src/github.com/TimJones/godotty
     steps:
       - checkout
-      - run: go build -a -ldflags '-extldflags "-static"' -o bin/godotty cmd/godotty/*.go
+      - run: make bin
   check_formatting:
     docker:
       - image: circleci/golang:1.11
         environment:
+          NO_DOCKER: 1
           CGO_ENABLED: "0"
     working_directory: /go/src/github.com/TimJones/godotty
     steps:
       - checkout
-      - run: |
-          filecount=$(gofmt -s -l cmd/ | wc -l)
-          gofmt -s -l -e -d cmd/
-          exit ${filecount}
+      - run: make check-fmt
 workflows:
   version: 2
   check:
