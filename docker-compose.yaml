@@ -5,7 +5,7 @@ services:
       context: .
       target: development
     environment:
-      GOCACHE: /go/src/github.com/timjones/godotty/.cache
+      GOCACHE: /go/src/github.com/TimJones/godotty/.cache
       CGO_ENABLED: "0"
     volumes:
-    - .:/go/src/github.com/timjones/godotty
+    - .:/go/src/github.com/TimJones/godotty

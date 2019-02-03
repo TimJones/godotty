@@ -3,4 +3,4 @@ MAINTAINER Tim Jones <timniverse@gmail.com>
 
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
-WORKDIR /go/src/github.com/timjones/godotty
+WORKDIR /go/src/github.com/TimJones/godotty
