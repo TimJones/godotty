@@ -6,54 +6,36 @@ UID:=$(shell id -u)
 GID:=$(shell id -g)
 .DEFAULT_GOAL:=bin
 
-.PHONY: docker-check
-docker-check:
-ifndef DOCKER
-	@echo "docker is not available. Please install docker"
+ifdef NO_DOCKER
+define docker_wrapper
+	$(1)
+endef
+else
+define docker_wrapper
+	@$(DOCKER) tag $(PROJECT)_$(PROJECT):latest $(PROJECT)_$(PROJECT):old 2>/dev/null ||:
+	@$(DOCKER_COMPOSE) --project-name $(PROJECT) build
+	@$(DOCKER) rmi $(PROJECT)_$(PROJECT):old 2>/dev/null ||:
+	@echo $(1)
+	@$(DOCKER_COMPOSE) --project-name $(PROJECT) run \
+		--rm \
+		--user "$(UID):$(GID)" \
+		$(PROJECT) \
+		$(1)
+endef
 endif
-ifndef DOCKER_COMPOSE
-	@echo "docker-compose is not available. Please install docker-compose"
-endif
-
-.PHONY: dev-container
-dev-container: docker-check
-	-$(DOCKER) tag $(PROJECT)_$(PROJECT):latest $(PROJECT)_$(PROJECT):old
-	$(DOCKER_COMPOSE) --project-name $(PROJECT) build
-	-$(DOCKER) rmi $(PROJECT)_$(PROJECT):old
 
 .PHONY: shell
-shell: dev-container
-	$(DOCKER_COMPOSE) --project-name $(PROJECT) run \
-		--name $(PROJECT)-shell \
-		--rm \
-		--user "$(UID):$(GID)" \
-		$(PROJECT) \
-		bash
-
-.PHONY: clean
-clean: docker-check
-	$(DOCKER_COMPOSE) --project-name $(PROJECT) down \
-	--rmi local \
-	--remove-orphans
-
-.PHONY: image
-image: docker-check
-	$(DOCKER) build --tag $(IMAGE) .
+shell:
+	$(call docker_wrapper,bash)
 
 .PHONY: bin
-bin: dev-container
-	$(DOCKER_COMPOSE) --project-name $(PROJECT) run \
-		--name $(PROJECT)-bin \
-		--rm \
-		--user "$(UID):$(GID)" \
-		$(PROJECT) \
-		go build -a -ldflags '-extldflags "-static"' -o bin/$(PROJECT) cmd/$(PROJECT)/*.go
+bin:
+	$(call docker_wrapper,go build -a -ldflags '-extldflags "-static"' -o bin/$(PROJECT) cmd/$(PROJECT)/*.go)
+
+.PHONY: check-fmt
+check-fmt:
+	$(call docker_wrapper,sh -c 'gofmt -s -l -e -d cmd/ && exit `gofmt -s -l cmd/ | wc -l`')
 
 .PHONY: fmt
-fmt: dev-container
-	$(DOCKER_COMPOSE) --project-name $(PROJECT) run \
-		--name $(PROJECT)-fmt \
-		--rm \
-		--user "$(UID):$(GID)" \
-		$(PROJECT) \
-		gofmt -s -l -w cmd/ pkg/
+fmt:
+	$(call docker_wrapper,gofmt -s -l -w cmd/ pkg/)
