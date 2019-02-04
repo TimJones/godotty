@@ -1,4 +1,5 @@
 PROJECT=godotty
+CODE_DIRS=cmd/ internal/
 IMAGE=quay.io/timjones/$(PROJECT)
 DOCKER:=$(shell command -v docker 2>/dev/null)
 DOCKER_COMPOSE:=$(shell command -v docker-compose 2>/dev/null)
@@ -34,8 +35,12 @@ bin:
 
 .PHONY: check-fmt
 check-fmt:
-	$(call docker_wrapper,sh -c 'gofmt -s -l -e -d cmd/ && exit `gofmt -s -l cmd/ | wc -l`')
+	$(call docker_wrapper,sh -c 'gofmt -s -l -e -d $(CODE_DIRS) && exit `gofmt -s -l $(CODE_DIRS) | wc -l`')
 
 .PHONY: fmt
 fmt:
-	$(call docker_wrapper,gofmt -s -l -w cmd/ pkg/)
+	$(call docker_wrapper,gofmt -s -l -w $(CODE_DIRS))
+
+.PHONY: deps
+deps:
+	$(call docker_wrapper,dep ensure -v)
