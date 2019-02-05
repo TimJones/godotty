@@ -1,7 +1,6 @@
 package godotty
 
 import (
-	"os"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
@@ -26,7 +25,7 @@ func (godotty *Godotty) LoadConfig() error {
 
 func (godotty *Godotty) SaveConfig() error {
 	configFile := filepath.Join(godotty.Dir, godotty.File)
-	file, err := os.Create(configFile)
+	file, err := godotty.Fs.Create(configFile)
 	if err != nil {
 		return err
 	}

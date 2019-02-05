@@ -17,6 +17,6 @@ type DottyConfig struct {
 }
 
 type Dottyfile struct {
-	Source      string
-	Destination string
+	Source      string `toml:"source"`
+	Destination string `toml:"destination"`
 }
