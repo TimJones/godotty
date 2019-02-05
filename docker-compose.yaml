@@ -5,6 +5,7 @@ services:
       context: .
       target: development
     environment:
+      HOME: /home/fake
       GOCACHE: /go/src/github.com/TimJones/godotty/.cache
       CGO_ENABLED: "0"
     volumes:
