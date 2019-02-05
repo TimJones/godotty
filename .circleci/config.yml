@@ -23,9 +23,20 @@ jobs:
     steps:
       - checkout
       - run: make check-fmt
+  unit_tests:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          NO_DOCKER: 1
+          CGO_ENABLED: "0"
+    working_directory: /go/src/github.com/TimJones/godotty
+    steps:
+      - checkout
+      - run: make test
 workflows:
   version: 2
   check:
     jobs:
       - build
       - check_formatting
+      - unit_tests

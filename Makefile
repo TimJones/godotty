@@ -44,3 +44,7 @@ fmt:
 .PHONY: deps
 deps:
 	$(call docker_wrapper,dep ensure -v)
+
+.PHONY: test
+test:
+	$(call docker_wrapper,go test ./internal/app/godotty)
