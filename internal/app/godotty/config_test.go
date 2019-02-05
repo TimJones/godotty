@@ -1,22 +1,26 @@
 package godotty
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/spf13/afero"
 )
 
 const testDataDir = "fixtures"
 
 func TestLoadConfig(t *testing.T) {
 	testTable := []struct {
-		dataFile string
-		expected *GodottyConfig
+		godotty  *Godotty
+		expected DottyConfig
 	}{
 		{
-			dataFile: filepath.Join(testDataDir, "single.toml"),
-			expected: &GodottyConfig{
+			godotty: &Godotty{
+				Fs:   afero.NewOsFs(),
+				Dir:  testDataDir,
+				File: "single.toml",
+			},
+			expected: DottyConfig{
 				Dottyfiles: []Dottyfile{
 					{
 						Source:      "xinitrc",
@@ -26,8 +30,12 @@ func TestLoadConfig(t *testing.T) {
 			},
 		},
 		{
-			dataFile: filepath.Join(testDataDir, "multiple.toml"),
-			expected: &GodottyConfig{
+			godotty: &Godotty{
+				Fs:   afero.NewOsFs(),
+				Dir:  testDataDir,
+				File: "multiple.toml",
+			},
+			expected: DottyConfig{
 				Dottyfiles: []Dottyfile{
 					{
 						Source:      "xinitrc",
@@ -46,12 +54,11 @@ func TestLoadConfig(t *testing.T) {
 		},
 	}
 	for _, test := range testTable {
-		actual, err := LoadFromFile(test.dataFile)
-		if err != nil {
+		if err := test.godotty.LoadConfig(); err != nil {
 			t.Error(err)
 		}
-		if !cmp.Equal(test.expected, actual) {
-			t.Errorf("loading file %s failed:\n%s", test.dataFile, cmp.Diff(test.expected, actual))
+		if !cmp.Equal(test.expected, test.godotty.Config) {
+			t.Errorf("loading file %s failed:\n%s", test.godotty.File, cmp.Diff(test.expected, test.godotty.Config))
 		}
 	}
 }

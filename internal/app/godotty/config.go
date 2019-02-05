@@ -2,24 +2,35 @@ package godotty
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/spf13/afero"
 )
 
-func LoadFromFile(filepath string) (*GodottyConfig, error) {
-	var config GodottyConfig
-	if _, err := toml.DecodeFile(filepath, &config); err != nil {
-		return nil, err
+func New() *Godotty {
+	return &Godotty{
+		Fs:   afero.NewOsFs(),
+		Dir:  DefaultDirectory,
+		File: DefaultConfigFilename,
 	}
-	return &config, nil
 }
 
-func (config *GodottyConfig) SaveFile(filepath string) error {
-	file, err := os.Create(filepath)
+func (godotty *Godotty) LoadConfig() error {
+	configFile := filepath.Join(godotty.Dir, godotty.File)
+	if _, err := toml.DecodeFile(configFile, &godotty.Config); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (godotty *Godotty) SaveConfig() error {
+	configFile := filepath.Join(godotty.Dir, godotty.File)
+	file, err := os.Create(configFile)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 	enc := toml.NewEncoder(file)
-	return enc.Encode(config)
+	return enc.Encode(godotty.Config)
 }
