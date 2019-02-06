@@ -40,7 +40,11 @@ func (godotty *Godotty) Import(file string) error {
 		return err
 	}
 	defer sourceFile.Close()
-	destFile, err := godotty.Fs.Create(filepath.Join(godotty.Dir, dottyfile.Source))
+	dest := filepath.Join(godotty.Dir, dottyfile.Source)
+	if err := godotty.Fs.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+		return err
+	}
+	destFile, err := godotty.Fs.Create(dest)
 	if err != nil {
 		return err
 	}

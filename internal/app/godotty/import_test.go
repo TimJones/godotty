@@ -78,6 +78,22 @@ func TestImport(t *testing.T) {
 				},
 			},
 		},
+		{
+			importFile:  "~/.ssh/config",
+			fileContent: []byte("ssh_config file content"),
+			godotty: &Godotty{
+				Fs: afero.NewMemMapFs(),
+			},
+			expectedFile: "ssh/config",
+			expectedConfig: DottyConfig{
+				Dottyfiles: []Dottyfile{
+					{
+						Source:      "ssh/config",
+						Destination: "~/.ssh/config",
+					},
+				},
+			},
+		},
 	}
 	for _, test := range testTable {
 		// Setup
