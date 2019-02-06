@@ -7,15 +7,13 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-func (godotty *Godotty) Import(files []string) error {
-	for _, file := range files {
-		dottyfile, err := toDottyfile(file)
-		if err != nil {
-			return err
-		}
-
-		godotty.Config.Dottyfiles = append(godotty.Config.Dottyfiles, dottyfile)
+func (godotty *Godotty) Import(file string) error {
+	dottyfile, err := toDottyfile(file)
+	if err != nil {
+		return err
 	}
+
+	godotty.Config.Dottyfiles = append(godotty.Config.Dottyfiles, dottyfile)
 	return nil
 }
 

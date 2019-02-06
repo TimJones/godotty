@@ -25,15 +25,13 @@ func helperRelToRoot(t *testing.T, path string) string {
 
 func TestImport(t *testing.T) {
 	testTable := []struct {
-		importFiles []string
-		godotty     *Godotty
-		expected    DottyConfig
+		importFile string
+		godotty    *Godotty
+		expected   DottyConfig
 	}{
 		{
-			importFiles: []string{
-				"~/.xinitrc",
-			},
-			godotty: &Godotty{},
+			importFile: "~/.xinitrc",
+			godotty:    &Godotty{},
 			expected: DottyConfig{
 				Dottyfiles: []Dottyfile{
 					{
@@ -44,10 +42,7 @@ func TestImport(t *testing.T) {
 			},
 		},
 		{
-			importFiles: []string{
-				"~/.bashrc",
-				"~/.zshrc",
-			},
+			importFile: "~/.bashrc",
 			godotty: &Godotty{
 				Config: DottyConfig{
 					Dottyfiles: []Dottyfile{
@@ -68,21 +63,17 @@ func TestImport(t *testing.T) {
 						Source:      "bashrc",
 						Destination: "~/.bashrc",
 					},
-					{
-						Source:      "zshrc",
-						Destination: "~/.zshrc",
-					},
 				},
 			},
 		},
 	}
 	for _, test := range testTable {
-		err := test.godotty.Import(test.importFiles)
+		err := test.godotty.Import(test.importFile)
 		if err != nil {
 			t.Error(err)
 		}
 		if !cmp.Equal(test.expected, test.godotty.Config) {
-			t.Errorf("importing %s failed:\n%s", test.importFiles, cmp.Diff(test.expected, test.godotty.Config))
+			t.Errorf("importing %s failed:\n%s", test.importFile, cmp.Diff(test.expected, test.godotty.Config))
 		}
 	}
 }
