@@ -1,6 +1,7 @@
 package godotty
 
 import (
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -13,8 +14,25 @@ func (godotty *Godotty) Import(file string) error {
 		return err
 	}
 
+	// Source and Destination are swapped in this case as, relative to Godotty,
+	// the Source is the Godotty repository and the Destination is the host
+	sourceFile, err := godotty.Fs.Open(file)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+	destFile, err := godotty.Fs.Create(filepath.Join(godotty.Dir, dottyfile.Source))
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
 	godotty.Config.Dottyfiles = append(godotty.Config.Dottyfiles, dottyfile)
-	return nil
+	return destFile.Sync()
 }
 
 func toDottyfile(pathfile string) (Dottyfile, error) {

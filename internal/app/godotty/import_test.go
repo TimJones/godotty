@@ -1,10 +1,13 @@
 package godotty
 
 import (
+	"bytes"
 	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/afero"
 )
 
 func helperRelToAbs(t *testing.T, path string) string {
@@ -25,14 +28,20 @@ func helperRelToRoot(t *testing.T, path string) string {
 
 func TestImport(t *testing.T) {
 	testTable := []struct {
-		importFile string
-		godotty    *Godotty
-		expected   DottyConfig
+		importFile     string
+		fileContent    []byte
+		godotty        *Godotty
+		expectedFile   string
+		expectedConfig DottyConfig
 	}{
 		{
-			importFile: "~/.xinitrc",
-			godotty:    &Godotty{},
-			expected: DottyConfig{
+			importFile:  "~/.xinitrc",
+			fileContent: []byte("xinitrc file content"),
+			godotty: &Godotty{
+				Fs: afero.NewMemMapFs(),
+			},
+			expectedFile: "xinitrc",
+			expectedConfig: DottyConfig{
 				Dottyfiles: []Dottyfile{
 					{
 						Source:      "xinitrc",
@@ -42,8 +51,10 @@ func TestImport(t *testing.T) {
 			},
 		},
 		{
-			importFile: "~/.bashrc",
+			importFile:  "~/.bashrc",
+			fileContent: []byte("bashrc file content"),
 			godotty: &Godotty{
+				Fs: afero.NewMemMapFs(),
 				Config: DottyConfig{
 					Dottyfiles: []Dottyfile{
 						{
@@ -53,7 +64,8 @@ func TestImport(t *testing.T) {
 					},
 				},
 			},
-			expected: DottyConfig{
+			expectedFile: "bashrc",
+			expectedConfig: DottyConfig{
 				Dottyfiles: []Dottyfile{
 					{
 						Source:      "xinitrc",
@@ -68,12 +80,31 @@ func TestImport(t *testing.T) {
 		},
 	}
 	for _, test := range testTable {
-		err := test.godotty.Import(test.importFile)
+		// Setup
+		homedirpath, err := homedir.Dir()
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
-		if !cmp.Equal(test.expected, test.godotty.Config) {
-			t.Errorf("importing %s failed:\n%s", test.importFile, cmp.Diff(test.expected, test.godotty.Config))
+		if err = test.godotty.Fs.MkdirAll(homedirpath, 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err = afero.WriteFile(test.godotty.Fs, test.importFile, test.fileContent, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		// Test
+		if err = test.godotty.Import(test.importFile); err != nil {
+			t.Fatal(err)
+		}
+		if !cmp.Equal(test.expectedConfig, test.godotty.Config) {
+			t.Errorf("importing %s failed:\n%s", test.importFile, cmp.Diff(test.expectedConfig, test.godotty.Config))
+		}
+		actualContent, err := afero.ReadFile(test.godotty.Fs, filepath.Join(test.godotty.Dir, test.expectedFile))
+		if err = test.godotty.Import(test.importFile); err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(test.fileContent, actualContent) {
+			t.Errorf("importing %s failed, file content differs.\nExpected:\n%s\nGot:\n%s\n", test.importFile, test.fileContent, actualContent)
 		}
 	}
 }
