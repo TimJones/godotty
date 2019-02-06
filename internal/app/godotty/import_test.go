@@ -1,10 +1,27 @@
 package godotty
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
+
+func helperRelToAbs(t *testing.T, path string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return abs
+}
+
+func helperRelToRoot(t *testing.T, path string) string {
+	rel, err := filepath.Rel(string(filepath.Separator), helperRelToAbs(t, path))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return rel
+}
 
 func TestImport(t *testing.T) {
 	testTable := []struct {
@@ -70,27 +87,47 @@ func TestImport(t *testing.T) {
 	}
 }
 
-func TestSimplifyDotfilepath(t *testing.T) {
+func TestToDottyfile(t *testing.T) {
 	testTable := []struct {
-		dotfilepath string
-		expected    string
+		filepath string
+		expected Dottyfile
 	}{
 		{
-			dotfilepath: "~/.xinitrc",
-			expected:    "xinitrc",
+			filepath: "~/.xinitrc",
+			expected: Dottyfile{
+				Source:      "xinitrc",
+				Destination: "~/.xinitrc",
+			},
 		},
 		{
-			dotfilepath: "~/.ssh/config",
-			expected:    "ssh/config",
+			filepath: "~/.ssh/config",
+			expected: Dottyfile{
+				Source:      "ssh/config",
+				Destination: "~/.ssh/config",
+			},
+		},
+		{
+			filepath: "/absolute/file",
+			expected: Dottyfile{
+				Source:      "absolute/file",
+				Destination: "/absolute/file",
+			},
+		},
+		{
+			filepath: "../relative/file",
+			expected: Dottyfile{
+				Source:      helperRelToRoot(t, "../relative/file"),
+				Destination: helperRelToAbs(t, "../relative/file"),
+			},
 		},
 	}
 	for _, test := range testTable {
-		actual, err := simplifyDotfilepath(test.dotfilepath)
+		actual, err := toDottyfile(test.filepath)
 		if err != nil {
 			t.Error(err)
 		}
-		if actual != test.expected {
-			t.Errorf("simplifyDotfilepath %s failed: expected %s, got %s", test.dotfilepath, test.expected, actual)
+		if !cmp.Equal(actual, test.expected) {
+			t.Errorf("toDottyfile %s failed:\n%s", test.filepath, cmp.Diff(test.expected, actual))
 		}
 	}
 }

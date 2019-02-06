@@ -9,38 +9,46 @@ import (
 
 func (godotty *Godotty) Import(files []string) error {
 	for _, file := range files {
-		sourcefilepath, err := simplifyDotfilepath(file)
+		dottyfile, err := toDottyfile(file)
 		if err != nil {
 			return err
 		}
 
-		dottyfile := Dottyfile{
-			Source:      sourcefilepath,
-			Destination: file,
-		}
 		godotty.Config.Dottyfiles = append(godotty.Config.Dottyfiles, dottyfile)
 	}
 	return nil
 }
 
-func simplifyDotfilepath(dotfilepath string) (string, error) {
-	dotfilepath, err := homedir.Expand(dotfilepath)
+func toDottyfile(pathfile string) (Dottyfile, error) {
+	var src, dst string
+
+	src, err := homedir.Expand(pathfile)
 	if err != nil {
-		return "", err
+		return Dottyfile{}, err
 	}
 
 	homedirpath, err := homedir.Dir()
 	if err != nil {
-		return "", err
+		return Dottyfile{}, err
 	}
 
-	if strings.HasPrefix(dotfilepath, homedirpath) {
-		dotfilepath, err = filepath.Rel(homedirpath, dotfilepath)
+	if strings.HasPrefix(src, homedirpath) {
+		src, err = filepath.Rel(homedirpath, src)
 		if err != nil {
-			return "", err
+			return Dottyfile{}, err
+		}
+		dst = filepath.Join("~", src)
+	} else {
+		src, err = filepath.Abs(src)
+		if err != nil {
+			return Dottyfile{}, err
+		}
+		dst = src
+		src, err = filepath.Rel(string(filepath.Separator), src)
+		if err != nil {
+			return Dottyfile{}, err
 		}
 	}
-
-	dotfilepath = strings.TrimPrefix(dotfilepath, ".")
-	return dotfilepath, nil
+	src = strings.TrimPrefix(src, ".")
+	return Dottyfile{Source: src, Destination: dst}, nil
 }
