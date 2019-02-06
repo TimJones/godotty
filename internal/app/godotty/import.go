@@ -40,6 +40,11 @@ func (godotty *Godotty) Import(file string) error {
 		return err
 	}
 	defer sourceFile.Close()
+	sourceFileInfo, err := sourceFile.Stat()
+	if err != nil {
+		return err
+	}
+
 	dest := filepath.Join(godotty.Dir, dottyfile.Source)
 	if err := godotty.Fs.MkdirAll(filepath.Dir(dest), 0755); err != nil {
 		return err
@@ -51,6 +56,9 @@ func (godotty *Godotty) Import(file string) error {
 	defer destFile.Close()
 	_, err = io.Copy(destFile, sourceFile)
 	if err != nil {
+		return err
+	}
+	if err := godotty.Fs.Chmod(dest, sourceFileInfo.Mode()); err != nil {
 		return err
 	}
 

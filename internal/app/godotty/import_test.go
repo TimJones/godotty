@@ -2,6 +2,7 @@ package godotty
 
 import (
 	"bytes"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -30,6 +31,7 @@ func TestImport(t *testing.T) {
 	testTable := []struct {
 		importFile     string
 		fileContent    []byte
+		fileMode       os.FileMode
 		godotty        *Godotty
 		expectedFile   string
 		expectedConfig DottyConfig
@@ -37,8 +39,10 @@ func TestImport(t *testing.T) {
 		{
 			importFile:  "~/.xinitrc",
 			fileContent: []byte("xinitrc file content"),
+			fileMode:    0644,
 			godotty: &Godotty{
-				Fs: afero.NewMemMapFs(),
+				Fs:  afero.NewMemMapFs(),
+				Dir: DefaultDirectory,
 			},
 			expectedFile: "xinitrc",
 			expectedConfig: DottyConfig{
@@ -53,8 +57,10 @@ func TestImport(t *testing.T) {
 		{
 			importFile:  "~/.bashrc",
 			fileContent: []byte("bashrc file content"),
+			fileMode:    0644,
 			godotty: &Godotty{
-				Fs: afero.NewMemMapFs(),
+				Fs:  afero.NewMemMapFs(),
+				Dir: DefaultDirectory,
 				Config: DottyConfig{
 					Dottyfiles: []Dottyfile{
 						{
@@ -81,8 +87,10 @@ func TestImport(t *testing.T) {
 		{
 			importFile:  "~/.ssh/config",
 			fileContent: []byte("ssh_config file content"),
+			fileMode:    0644,
 			godotty: &Godotty{
-				Fs: afero.NewMemMapFs(),
+				Fs:  afero.NewMemMapFs(),
+				Dir: DefaultDirectory,
 			},
 			expectedFile: "ssh/config",
 			expectedConfig: DottyConfig{
@@ -90,6 +98,24 @@ func TestImport(t *testing.T) {
 					{
 						Source:      "ssh/config",
 						Destination: "~/.ssh/config",
+					},
+				},
+			},
+		},
+		{
+			importFile:  "~/.local/bin/script",
+			fileContent: []byte("script content"),
+			fileMode:    0755,
+			godotty: &Godotty{
+				Fs:  afero.NewMemMapFs(),
+				Dir: DefaultDirectory,
+			},
+			expectedFile: "local/bin/script",
+			expectedConfig: DottyConfig{
+				Dottyfiles: []Dottyfile{
+					{
+						Source:      "local/bin/script",
+						Destination: "~/.local/bin/script",
 					},
 				},
 			},
@@ -104,7 +130,7 @@ func TestImport(t *testing.T) {
 		if err = test.godotty.Fs.MkdirAll(homedirpath, 0755); err != nil {
 			t.Fatal(err)
 		}
-		if err = afero.WriteFile(test.godotty.Fs, test.importFile, test.fileContent, 0644); err != nil {
+		if err = afero.WriteFile(test.godotty.Fs, test.importFile, test.fileContent, test.fileMode); err != nil {
 			t.Fatal(err)
 		}
 
@@ -121,6 +147,14 @@ func TestImport(t *testing.T) {
 		}
 		if !bytes.Equal(test.fileContent, actualContent) {
 			t.Errorf("importing %s failed, file content differs.\nExpected:\n%s\nGot:\n%s\n", test.importFile, test.fileContent, actualContent)
+		}
+		fileInfo, err := test.godotty.Fs.Stat(filepath.Join(test.godotty.Dir, test.expectedFile))
+		if err != nil {
+			t.Fatal(err)
+		}
+		actualMode := fileInfo.Mode().Perm()
+		if test.fileMode != actualMode {
+			t.Errorf("importing %s failed, file mode differs.\nExpected:\n%s\nGot:\n%s\n", test.importFile, test.fileMode, actualMode)
 		}
 	}
 }
