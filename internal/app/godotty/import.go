@@ -2,11 +2,30 @@ package godotty
 
 import (
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
 )
+
+func Import(dottyDir string, files []string) error {
+	godotty := New()
+	godotty.Dir = dottyDir
+	if err := godotty.LoadConfig(); err != nil {
+		if err, ok := err.(*os.PathError); !ok {
+			return err
+		}
+	}
+
+	for _, file := range files {
+		if err := godotty.Import(file); err != nil {
+			return err
+		}
+	}
+
+	return godotty.SaveConfig()
+}
 
 func (godotty *Godotty) Import(file string) error {
 	dottyfile, err := toDottyfile(file)
