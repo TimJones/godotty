@@ -62,7 +62,18 @@ func (godotty *Godotty) Import(file string) error {
 		return err
 	}
 
-	godotty.Config.Dottyfiles = append(godotty.Config.Dottyfiles, dottyfile)
+	replaced := false
+	for i := range godotty.Config.Dottyfiles {
+		if godotty.Config.Dottyfiles[i].Source == dottyfile.Source {
+			godotty.Config.Dottyfiles[i] = dottyfile
+			replaced = true
+			break
+		}
+	}
+	if !replaced {
+		godotty.Config.Dottyfiles = append(godotty.Config.Dottyfiles, dottyfile)
+	}
+
 	return destFile.Sync()
 }
 

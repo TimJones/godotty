@@ -120,6 +120,32 @@ func TestImport(t *testing.T) {
 				},
 			},
 		},
+		{
+			importFile:  "~/.xinitrc",
+			fileContent: []byte("xinitrc file content"),
+			fileMode:    0644,
+			godotty: &Godotty{
+				Fs:  afero.NewMemMapFs(),
+				Dir: DefaultDirectory,
+				Config: DottyConfig{
+					Dottyfiles: []Dottyfile{
+						{
+							Source:      "xinitrc",
+							Destination: "~/.xinitrc",
+						},
+					},
+				},
+			},
+			expectedFile: "xinitrc",
+			expectedConfig: DottyConfig{
+				Dottyfiles: []Dottyfile{
+					{
+						Source:      "xinitrc",
+						Destination: "~/.xinitrc",
+					},
+				},
+			},
+		},
 	}
 	for _, test := range testTable {
 		// Setup
