@@ -13,9 +13,6 @@ define docker_wrapper
 endef
 else
 define docker_wrapper
-	@$(DOCKER) tag $(PROJECT)_$(PROJECT):latest $(PROJECT)_$(PROJECT):old 2>/dev/null ||:
-	@$(DOCKER_COMPOSE) --project-name $(PROJECT) build
-	@$(DOCKER) rmi $(PROJECT)_$(PROJECT):old 2>/dev/null ||:
 	@echo $(1)
 	@$(DOCKER_COMPOSE) --project-name $(PROJECT) run \
 		--rm \
@@ -31,7 +28,7 @@ shell:
 
 .PHONY: bin
 bin:
-	$(call docker_wrapper,go build -a -ldflags '-extldflags "-static"' -o bin/$(PROJECT) cmd/$(PROJECT)/*.go)
+	$(call docker_wrapper,go build -a -ldflags '-extldflags "-static"' -o bin/$(PROJECT) ./cmd/$(PROJECT))
 
 .PHONY: check-fmt
 check-fmt:
@@ -41,10 +38,6 @@ check-fmt:
 fmt:
 	$(call docker_wrapper,gofmt -s -l -w $(CODE_DIRS))
 
-.PHONY: deps
-deps:
-	$(call docker_wrapper,dep ensure -v)
-
 .PHONY: test
 test:
-	$(call docker_wrapper,go test ./internal/app/godotty)
+	$(call docker_wrapper,go test ./...)
