@@ -31,6 +31,14 @@
   version = "v1.0"
 
 [[projects]]
+  digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "af06845cf3004701891bf4fdb884bfe4920b3727"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
   name = "github.com/spf13/afero"
   packages = [
@@ -78,6 +86,7 @@
   input-imports = [
     "github.com/BurntSushi/toml",
     "github.com/google/go-cmp/cmp",
+    "github.com/mitchellh/go-homedir",
     "github.com/spf13/afero",
     "github.com/spf13/cobra",
   ]
