@@ -9,7 +9,6 @@ jobs:
         environment:
           NO_DOCKER: 1
           CGO_ENABLED: "0"
-    working_directory: /go/src/github.com/TimJones/godotty
     steps:
       - checkout
       - run: make bin
@@ -19,7 +18,6 @@ jobs:
         environment:
           NO_DOCKER: 1
           CGO_ENABLED: "0"
-    working_directory: /go/src/github.com/TimJones/godotty
     steps:
       - checkout
       - run: make check-fmt
@@ -29,7 +27,6 @@ jobs:
         environment:
           NO_DOCKER: 1
           CGO_ENABLED: "0"
-    working_directory: /go/src/github.com/TimJones/godotty
     steps:
       - checkout
       - run: make test
