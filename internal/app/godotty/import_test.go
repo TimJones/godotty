@@ -168,9 +168,6 @@ func TestImport(t *testing.T) {
 			t.Errorf("importing %s failed:\n%s", test.importFile, cmp.Diff(test.expectedConfig, test.godotty.Config))
 		}
 		actualContent, err := afero.ReadFile(test.godotty.Fs, filepath.Join(test.godotty.Dir, test.expectedFile))
-		if err = test.godotty.Import(test.importFile); err != nil {
-			t.Fatal(err)
-		}
 		if !bytes.Equal(test.fileContent, actualContent) {
 			t.Errorf("importing %s failed, file content differs.\nExpected:\n%s\nGot:\n%s\n", test.importFile, test.fileContent, actualContent)
 		}
