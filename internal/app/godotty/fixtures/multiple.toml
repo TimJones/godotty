@@ -1,0 +1,11 @@
+[[dotfile]]
+  source = "xinitrc"
+  destination = "~/.xinitrc"
+
+[[dotfile]]
+  source = "bashrc"
+  destination = "~/.bashrc"
+
+[[dotfile]]
+  source = "zshrc"
+  destination = "~/.zshrc"
